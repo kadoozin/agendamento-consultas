@@ -34,7 +34,7 @@ public class Agendamento {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private AgendamentoStatus status;
+    private AgendamentoStatus status = AgendamentoStatus.AGENDADO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
