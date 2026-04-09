@@ -1,5 +1,7 @@
 package com.example.agendamento_consultas.database.model;
 
+import com.example.agendamento_consultas.database.enums.AgendamentoStatus;
+import com.example.agendamento_consultas.database.enums.TipoConsulta;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,4 +31,12 @@ public class Agendamento {
 
     @Column(nullable = false)
     private LocalTime horario;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AgendamentoStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private TipoConsulta tipoConsulta;
 }
