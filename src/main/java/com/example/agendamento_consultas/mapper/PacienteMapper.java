@@ -10,13 +10,12 @@ import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface PacienteMapper {
     PacienteResponse toResponse(Paciente paciente);
 
     Paciente toEntity(PacienteRequest request);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updateEntity(PacienteRequest request, @MappingTarget Paciente paciente);
 
     List<PacienteResponse> toResponseList(List<Paciente> pacientes);
