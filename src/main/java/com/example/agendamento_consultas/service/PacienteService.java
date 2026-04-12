@@ -4,7 +4,6 @@ import com.example.agendamento_consultas.database.model.Paciente;
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
 import com.example.agendamento_consultas.dto.request.PacienteRequest;
 import com.example.agendamento_consultas.dto.response.PacienteResponse;
-import com.example.agendamento_consultas.exception.BusinessException;
 import com.example.agendamento_consultas.exception.ResourceAlreadyExistsException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.PacienteMapper;
@@ -22,9 +21,7 @@ public class PacienteService {
 
     @Transactional
     public PacienteResponse criar(PacienteRequest request) {
-        if (pacienteRepository.existsByDocumentoIdentificacao(request.documentoIdentificacao())) {
-            throw new ResourceAlreadyExistsException("Documento de Idenficação já cadastrado");
-        }
+        validarPaciente(request, null);
 
         Paciente paciente = pacienteMapper.toEntity(request);
 
@@ -49,9 +46,7 @@ public class PacienteService {
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-        if (pacienteRepository.existsByDocumentoIdentificacaoAndIdNot(request.documentoIdentificacao(), id)){
-            throw  new ResourceAlreadyExistsException("Documento de Identificação já cadastrado");
-        }
+        validarPaciente(request, id);
 
         pacienteMapper.updateEntity(request, paciente);
 
@@ -59,10 +54,17 @@ public class PacienteService {
     }
 
     @Transactional
-    public void deletar(Long id){
+    public void deletar(Long id) {
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
         pacienteRepository.delete(paciente);
+    }
+
+    private void validarPaciente(PacienteRequest request, Long id) {
+        boolean documentoExiste = id == null
+                ? pacienteRepository.existsByDocumentoIdentificacao(request.documentoIdentificacao())
+                : pacienteRepository.existsByDocumentoIdentificacaoAndIdNot(request.documentoIdentificacao(), id);
+        if (documentoExiste) throw new ResourceAlreadyExistsException("Documento de Identificação já cadastrado");
     }
 }
