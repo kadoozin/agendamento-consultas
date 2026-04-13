@@ -7,14 +7,13 @@ import org.mapstruct.*;
 
 import java.util.List;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
 public interface AgendamentoMapper {
     AgendamentoResponse toResponse(Agendamento agendamento);
 
     @Mapping(target = "paciente", ignore = true)
     Agendamento toEntity(AgendamentoRequest request);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "paciente", ignore = true)
     void updateEntity(AgendamentoRequest request, @MappingTarget Agendamento agendamento);
 
