@@ -7,6 +7,7 @@ import com.example.agendamento_consultas.database.repository.AgendamentoReposito
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
 import com.example.agendamento_consultas.dto.request.AgendamentoRequest;
 import com.example.agendamento_consultas.dto.request.AtualizarStatusRequest;
+import com.example.agendamento_consultas.dto.request.AtualizarTipoConsultaRequest;
 import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import com.example.agendamento_consultas.exception.BusinessException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
@@ -74,6 +75,16 @@ public class AgendamentoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
 
         agendamento.setStatus(request.atualizarStatus());
+
+        return agendamentoMapper.toResponse(agendamentoRepository.save(agendamento));
+    }
+
+    @Transactional
+    public AgendamentoResponse atualizarTipoConsulta(Long id, AtualizarTipoConsultaRequest request){
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+
+        agendamento.setTipoConsulta(request.atualizarTipoConsulta());
 
         return agendamentoMapper.toResponse(agendamentoRepository.save(agendamento));
     }
