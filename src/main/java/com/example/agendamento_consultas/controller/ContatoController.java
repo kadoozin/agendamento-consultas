@@ -43,7 +43,8 @@ public class ContatoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ContatoResponse> atualizar(@PathVariable Long id, ContatoRequest request){
+    public ResponseEntity<ContatoResponse> atualizar(@PathVariable Long id,
+                                                     @RequestBody @Valid ContatoRequest request){
         return ResponseEntity.ok(contatoService.atualizar(id, request));
     }
 
