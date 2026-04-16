@@ -22,4 +22,8 @@ public class Contato {
 
     @Column(nullable = false)
     private String numero;
+
+    @ManyToOne
+    @JoinColumn(name = "paciente_id", nullable = false)
+    private Paciente paciente;
 }
