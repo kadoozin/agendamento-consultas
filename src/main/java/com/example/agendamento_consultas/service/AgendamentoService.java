@@ -99,12 +99,12 @@ public class AgendamentoService {
 
     private void validarAgendamento(AgendamentoRequest request, Long id) {
         boolean horarioIndisponivel = id == null
-                ? agendamentoRepository.existsByDataAndHora(request.data(), request.hora())
-                : agendamentoRepository.existsByDataAndHoraAndIdNot(request.data(), request.hora(), id);
+                ? agendamentoRepository.existsByDataAndHorario(request.data(), request.horario())
+                : agendamentoRepository.existsByDataAndHorarioAndIdNot(request.data(), request.horario(), id);
 
         boolean pacienteJaAgendado = id == null
-                ? agendamentoRepository.existsByPacienteIdAndDataAndHora(request.pacienteId(), request.data(), request.hora())
-                : agendamentoRepository.existsByPacienteIdAndDataAndHoraAndIdNot(request.pacienteId(), request.data(), request.hora(), id);
+                ? agendamentoRepository.existsByPacienteIdAndDataAndHorario(request.pacienteId(), request.data(), request.horario())
+                : agendamentoRepository.existsByPacienteIdAndDataAndHorarioAndIdNot(request.pacienteId(), request.data(), request.horario(), id);
 
         if (horarioIndisponivel) throw new BusinessException("Horário já ocupado");
         if (pacienteJaAgendado) throw new BusinessException("Paciente já possui agendamento neste horário");
