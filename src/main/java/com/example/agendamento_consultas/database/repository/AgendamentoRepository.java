@@ -11,13 +11,13 @@ import java.util.List;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
-    boolean existsByDataAndHora(LocalDate data, LocalTime hora);
+    boolean existsByDataAndHorario(LocalDate data, LocalTime horario);
 
-    boolean existsByDataAndHoraAndIdNot(LocalDate data, LocalTime hora, Long id);
+    boolean existsByDataAndHorarioAndIdNot(LocalDate data, LocalTime horario, Long id);
 
-    boolean existsByPacienteIdAndDataAndHora(Long pacienteId, LocalDate data, LocalTime hora);
+    boolean existsByPacienteIdAndDataAndHorario(Long pacienteId, LocalDate data, LocalTime horario);
 
-    boolean existsByPacienteIdAndDataAndHoraAndIdNot(Long pacienteId, LocalDate data, LocalTime hora, Long id);
+    boolean existsByPacienteIdAndDataAndHorarioAndIdNot(Long pacienteId, LocalDate data, LocalTime horario, Long id);
 
     List<Agendamento> findByTipoConsulta(TipoConsulta tipoConsulta);
 }

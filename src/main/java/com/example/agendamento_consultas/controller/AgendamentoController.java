@@ -25,7 +25,7 @@ public class AgendamentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(agendamentoService.criar(request));
     }
 
-    @GetMapping
+    @GetMapping("/{id}")
     public ResponseEntity<AgendamentoResponse> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(agendamentoService.buscarPorId(id));
     }
@@ -35,7 +35,7 @@ public class AgendamentoController {
         return ResponseEntity.ok(agendamentoService.listarTodos());
     }
 
-    @GetMapping("/tipo/{tipoConsulta")
+    @GetMapping("/tipo/{tipoConsulta}")
     public ResponseEntity<List<AgendamentoResponse>> listarPorTipo(@PathVariable TipoConsulta tipoConsulta){
         return ResponseEntity.ok(agendamentoService.listarPorTipo(tipoConsulta));
     }

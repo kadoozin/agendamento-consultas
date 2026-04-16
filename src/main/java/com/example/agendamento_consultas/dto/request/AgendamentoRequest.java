@@ -10,7 +10,7 @@ import java.time.LocalTime;
 public record AgendamentoRequest(
         @NotNull Long pacienteId,
         @NotNull @JsonFormat(pattern = "dd/MM/yyyy") LocalDate data,
-        @NotNull @JsonFormat(pattern = "HH:mm") LocalTime hora,
+        @NotNull @JsonFormat(pattern = "HH:mm") LocalTime horario,
         @NotNull TipoConsulta tipoConsulta
 ) {
 }
