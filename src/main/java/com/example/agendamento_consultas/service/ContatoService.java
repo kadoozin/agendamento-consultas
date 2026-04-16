@@ -1,6 +1,7 @@
 package com.example.agendamento_consultas.service;
 
 import com.example.agendamento_consultas.database.model.Contato;
+import com.example.agendamento_consultas.database.model.Paciente;
 import com.example.agendamento_consultas.database.repository.ContatoRepository;
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
 import com.example.agendamento_consultas.dto.request.ContatoRequest;
@@ -27,6 +28,11 @@ public class ContatoService {
         validarContato(request, null);
 
         Contato contato = contatoMapper.toEntity(request);
+
+        Paciente paciente = pacienteRepository.findById(request.pacienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+
+        contato.setPaciente(paciente);
 
         return contatoMapper.toResponse(contatoRepository.save(contato));
     }
@@ -68,6 +74,11 @@ public class ContatoService {
         validarContato(request, id);
 
         contatoMapper.updateEntity(request, contato);
+
+        Paciente paciente = pacienteRepository.findById(request.pacienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+
+        contato.setPaciente(paciente);
 
         return contatoMapper.toResponse(contatoRepository.save(contato));
     }
