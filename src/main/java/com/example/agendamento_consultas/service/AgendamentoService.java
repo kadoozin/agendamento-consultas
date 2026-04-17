@@ -12,6 +12,7 @@ import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import com.example.agendamento_consultas.exception.BusinessException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.AgendamentoMapper;
+import com.example.agendamento_consultas.mapper.AgendamentoUpdateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,10 +26,11 @@ public class AgendamentoService {
     private final AgendamentoRepository agendamentoRepository;
     private final PacienteRepository pacienteRepository;
     private final AgendamentoMapper agendamentoMapper;
+    private final AgendamentoUpdateMapper agendamentoUpdateMapper;
 
     @Transactional
     public AgendamentoResponse criar(AgendamentoRequest request) {
-        Paciente paciente = pacienteRepository.findById(request.pacienteId())
+        Paciente paciente = pacienteRepository.findByIdWithContatos(request.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
         validarAgendamento(request, null);
@@ -64,7 +66,7 @@ public class AgendamentoService {
 
         validarAgendamento(request, id);
 
-        agendamentoMapper.updateEntity(request, agendamento);
+        agendamentoUpdateMapper.updateEntity(request, agendamento);
 
         return agendamentoMapper.toResponse(agendamentoRepository.save(agendamento));
     }

@@ -23,7 +23,7 @@ public class Agendamento {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(nullable = false)
+    @JoinColumn(name = "paciente_id", nullable = false)
     private Paciente paciente;
 
     @Column(nullable = false)
