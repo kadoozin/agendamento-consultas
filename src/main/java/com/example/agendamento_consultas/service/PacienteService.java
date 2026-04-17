@@ -7,6 +7,7 @@ import com.example.agendamento_consultas.dto.response.PacienteResponse;
 import com.example.agendamento_consultas.exception.ResourceAlreadyExistsException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.PacienteMapper;
+import com.example.agendamento_consultas.mapper.PacienteUpdateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PacienteService {
     private final PacienteRepository pacienteRepository;
+    private final PacienteUpdateMapper pacienteUpdateMapper;
     private final PacienteMapper pacienteMapper;
 
     @Transactional
@@ -48,7 +50,7 @@ public class PacienteService {
 
         validarPaciente(request, id);
 
-        pacienteMapper.updateEntity(request, paciente);
+        pacienteUpdateMapper.updateEntity(request, paciente);
 
         return pacienteMapper.toResponse(pacienteRepository.save(paciente));
     }

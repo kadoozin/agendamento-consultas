@@ -9,6 +9,7 @@ import com.example.agendamento_consultas.dto.response.ContatoResponse;
 import com.example.agendamento_consultas.exception.ResourceAlreadyExistsException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.ContatoMapper;
+import com.example.agendamento_consultas.mapper.ContatoUpdateMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,7 @@ public class ContatoService {
 
     private final ContatoRepository contatoRepository;
     private final ContatoMapper contatoMapper;
+    private final ContatoUpdateMapper contatoUpdateMapper;
     private final PacienteRepository pacienteRepository;
 
     @Transactional
@@ -73,7 +75,7 @@ public class ContatoService {
 
         validarContato(request, id);
 
-        contatoMapper.updateEntity(request, contato);
+        contatoUpdateMapper.updateEntity(request, contato);
 
         Paciente paciente = pacienteRepository.findById(request.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
