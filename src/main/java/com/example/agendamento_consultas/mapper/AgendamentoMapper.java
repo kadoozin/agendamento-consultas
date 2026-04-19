@@ -11,7 +11,9 @@ import java.util.List;
 public interface AgendamentoMapper {
     AgendamentoResponse toResponse(Agendamento agendamento);
 
+    @Mapping(target = "id", ignore = true)
     @Mapping(target = "paciente", ignore = true)
+    @Mapping(target = "status", ignore = true)
     Agendamento toEntity(AgendamentoCreateRequest request);
 
     List<AgendamentoResponse> toResponseList(List<Agendamento> agendamentos);

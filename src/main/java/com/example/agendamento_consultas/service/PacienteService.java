@@ -32,22 +32,22 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> buscar(String nome, String documento) {
+    public List<PacienteResponse> buscar(String nomeCompleto, String documentoIdentificacao) {
 
-        if (nome != null && documento != null) {
+        if (nomeCompleto != null && documentoIdentificacao != null) {
             return pacienteMapper.toResponseList(
-                    pacienteRepository.findByNomeContainingIgnoreCaseAndDocumentoIdentificacao(nome, documento)
+                    pacienteRepository.findByNomeCompletoContainingIgnoreCaseAndDocumentoIdentificacao(nomeCompleto, documentoIdentificacao)
             );
         }
 
-        if (nome != null) {
+        if (nomeCompleto != null) {
             return pacienteMapper.toResponseList(
-                    pacienteRepository.findByNomeContainingIgnoreCase(nome)
+                    pacienteRepository.findByNomeCompletoContainingIgnoreCase(nomeCompleto)
             );
         }
 
-        if (documento != null) {
-            Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documento)
+        if (documentoIdentificacao != null) {
+            Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documentoIdentificacao)
                     .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
             return List.of(pacienteMapper.toResponse(paciente));
