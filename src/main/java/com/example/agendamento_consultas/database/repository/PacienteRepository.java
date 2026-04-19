@@ -16,9 +16,9 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     Optional<Paciente> findByDocumentoIdentificacao(String documentoIdentificacao);
 
-    List<Paciente> findByNomeContainingIgnoreCase(String nome);
+    List<Paciente> findByNomeCompletoContainingIgnoreCase(String nomeCompleto);
 
-    List<Paciente> findByNomeContainingIgnoreCaseAndDocumentoIdentificacao(String nome, String documentoIdenficacao);
+    List<Paciente> findByNomeCompletoContainingIgnoreCaseAndDocumentoIdentificacao(String nomeCompleto, String documentoIdenficacao);
 
     @Query("SELECT p FROM Paciente p LEFT JOIN FETCH p.contatos WHERE p.id = :id")
     Optional<Paciente> findByIdWithContatos(Long id);

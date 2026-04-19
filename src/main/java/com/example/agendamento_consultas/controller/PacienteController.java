@@ -28,11 +28,11 @@ public class PacienteController {
         return ResponseEntity.ok(pacienteService.buscarPorId(id));
     }
 
-    @GetMapping
+    @GetMapping("/buscar")
     public ResponseEntity<List<PacienteResponse>> buscar(
-            @RequestParam(required = false) String nome,
-            @RequestParam(required = false) String documento){
-        return ResponseEntity.ok(pacienteService.buscar(nome, documento));
+            @RequestParam(required = false) String nomeCompleto,
+            @RequestParam(required = false) String documentoIdentificacao){
+        return ResponseEntity.ok(pacienteService.buscar(nomeCompleto, documentoIdentificacao));
     }
 
     @GetMapping
