@@ -5,12 +5,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
-import java.util.Set;
 
-public record PacienteRequest(
+public record PacienteCreateRequest(
         @NotBlank String nomeCompleto,
         @NotNull @JsonFormat(pattern = "dd/MM/yyyy") LocalDate dataNascimento,
-        @NotBlank String documentoIdentificacao,
-        Set<ContatoRequest> contatos
+        @NotBlank String documentoIdentificacao
 ) {
 }

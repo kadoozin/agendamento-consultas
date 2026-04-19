@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record ContatoResponse(
         Long id,
         String email,
-        String numero
+        String numero,
+        PacienteResumoResponse paciente
 ) {
 }

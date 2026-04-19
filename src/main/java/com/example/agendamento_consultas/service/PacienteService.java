@@ -2,7 +2,8 @@ package com.example.agendamento_consultas.service;
 
 import com.example.agendamento_consultas.database.model.Paciente;
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
-import com.example.agendamento_consultas.dto.request.PacienteRequest;
+import com.example.agendamento_consultas.dto.request.PacienteCreateRequest;
+import com.example.agendamento_consultas.dto.request.PacienteUpdateRequest;
 import com.example.agendamento_consultas.dto.response.PacienteResponse;
 import com.example.agendamento_consultas.exception.ResourceAlreadyExistsException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
@@ -22,12 +23,20 @@ public class PacienteService {
     private final PacienteMapper pacienteMapper;
 
     @Transactional
-    public PacienteResponse criar(PacienteRequest request) {
-        validarPaciente(request, null);
+    public PacienteResponse criar(PacienteCreateRequest request) {
+        validarDocumento(request.documentoIdentificacao(), null);
 
         Paciente paciente = pacienteMapper.toEntity(request);
 
         return pacienteMapper.toResponse(pacienteRepository.save(paciente));
+    }
+
+    @Transactional(readOnly = true)
+    public PacienteResponse buscarPorDocumentoIdentificacao(String documentoIdentificacao){
+        Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documentoIdentificacao)
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+
+        return pacienteMapper.toResponse(paciente);
     }
 
     @Transactional(readOnly = true)
@@ -39,16 +48,18 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> listarTodos() {
+    public List<PacienteResponse> listar() {
         return pacienteMapper.toResponseList(pacienteRepository.findAll());
     }
 
     @Transactional
-    public PacienteResponse atualizar(Long id, PacienteRequest request) {
+    public PacienteResponse atualizar(Long id, PacienteUpdateRequest request) {
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-        validarPaciente(request, id);
+        if (request.documentoIdentificacao() != null){
+            validarDocumento(request.documentoIdentificacao(), id);
+        }
 
         pacienteUpdateMapper.updateEntity(request, paciente);
 
@@ -63,10 +74,13 @@ public class PacienteService {
         pacienteRepository.delete(paciente);
     }
 
-    private void validarPaciente(PacienteRequest request, Long id) {
-        boolean documentoExiste = id == null
-                ? pacienteRepository.existsByDocumentoIdentificacao(request.documentoIdentificacao())
-                : pacienteRepository.existsByDocumentoIdentificacaoAndIdNot(request.documentoIdentificacao(), id);
-        if (documentoExiste) throw new ResourceAlreadyExistsException("Documento de Identificação já cadastrado");
+    private void validarDocumento(String documento, Long id) {
+        boolean existe = (id == null)
+                ? pacienteRepository.existsByDocumentoIdentificacao(documento)
+                : pacienteRepository.existsByDocumentoIdentificacaoAndIdNot(documento, id);
+
+        if (existe) {
+            throw new ResourceAlreadyExistsException("Documento de identificação já cadastrado");
+        }
     }
 }

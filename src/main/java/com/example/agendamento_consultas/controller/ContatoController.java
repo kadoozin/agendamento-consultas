@@ -1,6 +1,7 @@
 package com.example.agendamento_consultas.controller;
 
-import com.example.agendamento_consultas.dto.request.ContatoRequest;
+import com.example.agendamento_consultas.dto.request.ContatoCreateRequest;
+import com.example.agendamento_consultas.dto.request.ContatoUpdateRequest;
 import com.example.agendamento_consultas.dto.response.ContatoResponse;
 import com.example.agendamento_consultas.service.ContatoService;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ public class ContatoController {
     private final ContatoService contatoService;
 
     @PostMapping
-    public ResponseEntity<ContatoResponse> criar(@RequestBody @Valid ContatoRequest request){
+    public ResponseEntity<ContatoResponse> criar(@RequestBody @Valid ContatoCreateRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(contatoService.criar(request));
     }
 
@@ -44,7 +45,7 @@ public class ContatoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ContatoResponse> atualizar(@PathVariable Long id,
-                                                     @RequestBody @Valid ContatoRequest request){
+                                                     @RequestBody @Valid ContatoUpdateRequest request){
         return ResponseEntity.ok(contatoService.atualizar(id, request));
     }
 
