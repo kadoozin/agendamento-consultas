@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public record AgendamentoRequest(
+public record AgendamentoCreateRequest(
         @NotNull Long pacienteId,
         @NotNull @JsonFormat(pattern = "dd/MM/yyyy") LocalDate data,
         @NotNull @JsonFormat(pattern = "HH:mm") LocalTime horario,

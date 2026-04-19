@@ -1,6 +1,7 @@
 package com.example.agendamento_consultas.controller;
 
-import com.example.agendamento_consultas.dto.request.PacienteRequest;
+import com.example.agendamento_consultas.dto.request.PacienteCreateRequest;
+import com.example.agendamento_consultas.dto.request.PacienteUpdateRequest;
 import com.example.agendamento_consultas.dto.response.PacienteResponse;
 import com.example.agendamento_consultas.service.PacienteService;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ public class PacienteController {
     private final PacienteService pacienteService;
 
     @PostMapping
-    public ResponseEntity<PacienteResponse> criar(@RequestBody @Valid PacienteRequest request){
+    public ResponseEntity<PacienteResponse> criar(@RequestBody @Valid PacienteCreateRequest request){
         return ResponseEntity.status(HttpStatus.CREATED).body(pacienteService.criar(request));
     }
 
@@ -27,13 +28,18 @@ public class PacienteController {
         return ResponseEntity.ok(pacienteService.buscarPorId(id));
     }
 
-    @GetMapping
-    public ResponseEntity<List<PacienteResponse>> listarTodos(){
-        return ResponseEntity.ok(pacienteService.listarTodos());
+    @GetMapping("/{documento}")
+    public ResponseEntity<PacienteResponse> buscarPorDocumentoIdentificacao(@PathVariable String documentoIdentificacao){
+        return ResponseEntity.ok(pacienteService.buscarPorDocumentoIdentificacao(documentoIdentificacao));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PacienteResponse> atualizar(@PathVariable Long id, PacienteRequest request){
+    @GetMapping
+    public ResponseEntity<List<PacienteResponse>> listar(){
+        return ResponseEntity.ok(pacienteService.listar());
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<PacienteResponse> atualizar(@PathVariable Long id, @RequestBody @Valid PacienteUpdateRequest request){
         return ResponseEntity.ok(pacienteService.atualizar(id, request));
     }
 

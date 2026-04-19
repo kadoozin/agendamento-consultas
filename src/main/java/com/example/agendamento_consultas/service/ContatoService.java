@@ -4,7 +4,8 @@ import com.example.agendamento_consultas.database.model.Contato;
 import com.example.agendamento_consultas.database.model.Paciente;
 import com.example.agendamento_consultas.database.repository.ContatoRepository;
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
-import com.example.agendamento_consultas.dto.request.ContatoRequest;
+import com.example.agendamento_consultas.dto.request.ContatoCreateRequest;
+import com.example.agendamento_consultas.dto.request.ContatoUpdateRequest;
 import com.example.agendamento_consultas.dto.response.ContatoResponse;
 import com.example.agendamento_consultas.exception.ResourceAlreadyExistsException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
@@ -26,14 +27,14 @@ public class ContatoService {
     private final PacienteRepository pacienteRepository;
 
     @Transactional
-    public ContatoResponse criar(ContatoRequest request) {
-        validarContato(request, null);
+    public ContatoResponse criar(ContatoCreateRequest request) {
 
-        Contato contato = contatoMapper.toEntity(request);
+        validarContatoCreate(request);
 
         Paciente paciente = pacienteRepository.findById(request.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
+        Contato contato = contatoMapper.toEntity(request);
         contato.setPaciente(paciente);
 
         return contatoMapper.toResponse(contatoRepository.save(contato));
@@ -69,18 +70,21 @@ public class ContatoService {
     }
 
     @Transactional
-    public ContatoResponse atualizar(Long id, ContatoRequest request) {
+    public ContatoResponse atualizar(Long id, ContatoUpdateRequest request) {
+
         Contato contato = contatoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Contato não encontrado"));
 
-        validarContato(request, id);
+        validarContatoUpdate(request, id);
 
         contatoUpdateMapper.updateEntity(request, contato);
 
-        Paciente paciente = pacienteRepository.findById(request.pacienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+        if (request.pacienteId() != null) {
+            Paciente paciente = pacienteRepository.findById(request.pacienteId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-        contato.setPaciente(paciente);
+            contato.setPaciente(paciente);
+        }
 
         return contatoMapper.toResponse(contatoRepository.save(contato));
     }
@@ -93,17 +97,60 @@ public class ContatoService {
         contatoRepository.delete(contato);
     }
 
-    private void validarContato(ContatoRequest request, Long id) {
-        boolean pacienteExiste = pacienteRepository.existsById(request.pacienteId());
-        boolean emailExiste = id == null
-                ? contatoRepository.existsByEmail(request.email())
-                : contatoRepository.existsByEmailAndIdNot(request.email(), id);
-        boolean numeroExiste = id == null
-                ? contatoRepository.existsByNumero(request.numero())
-                : contatoRepository.existsByNumeroAndIdNot(request.numero(), id);
+    private void validarContatoCreate(ContatoCreateRequest request) {
 
-        if (!pacienteExiste) throw new ResourceNotFoundException("Paciente não encontrado");
-        if (emailExiste) throw new ResourceAlreadyExistsException("Email já cadastrado");
-        if (numeroExiste) throw new ResourceAlreadyExistsException("Número já cadastrado");
+        boolean pacienteExiste =
+                pacienteRepository.existsById(request.pacienteId());
+
+        boolean emailExiste =
+                contatoRepository.existsByEmail(request.email());
+
+        boolean numeroExiste =
+                contatoRepository.existsByNumero(request.numero());
+
+        if (!pacienteExiste) {
+            throw new ResourceNotFoundException("Paciente não encontrado");
+        }
+
+        if (emailExiste) {
+            throw new ResourceAlreadyExistsException("Email já cadastrado");
+        }
+
+        if (numeroExiste) {
+            throw new ResourceAlreadyExistsException("Número já cadastrado");
+        }
+    }
+
+    private void validarContatoUpdate(ContatoUpdateRequest request, Long id) {
+
+        if (request.pacienteId() != null) {
+
+            boolean pacienteExiste =
+                    pacienteRepository.existsById(request.pacienteId());
+
+            if (!pacienteExiste) {
+                throw new ResourceNotFoundException("Paciente não encontrado");
+            }
+        }
+
+        if (request.email() != null) {
+
+            boolean emailExiste =
+                    contatoRepository.existsByEmailAndIdNot(request.email(), id);
+
+            if (emailExiste) {
+                throw new ResourceAlreadyExistsException("Email já cadastrado");
+            }
+        }
+
+        if (request.numero() != null) {
+
+            boolean numeroExiste =
+                    contatoRepository.existsByNumeroAndIdNot(request.numero(), id);
+
+            if (numeroExiste) {
+                throw new ResourceAlreadyExistsException("Número já cadastrado");
+            }
+        }
     }
 }

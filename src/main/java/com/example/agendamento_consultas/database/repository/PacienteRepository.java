@@ -13,6 +13,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     boolean existsByDocumentoIdentificacaoAndIdNot(String documentoIdenficacao, Long id);
 
+    Optional<Paciente> findByDocumentoIdentificacao(String documentoIdentificacao);
+
     @Query("SELECT p FROM Paciente p LEFT JOIN FETCH p.contatos WHERE p.id = :id")
     Optional<Paciente> findByIdWithContatos(Long id);
 }
