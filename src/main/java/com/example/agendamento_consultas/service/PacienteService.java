@@ -32,11 +32,28 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public PacienteResponse buscarPorDocumentoIdentificacao(String documentoIdentificacao){
-        Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documentoIdentificacao)
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+    public List<PacienteResponse> buscar(String nome, String documento) {
 
-        return pacienteMapper.toResponse(paciente);
+        if (nome != null && documento != null) {
+            return pacienteMapper.toResponseList(
+                    pacienteRepository.findByNomeContainingIgnoreCaseAndDocumentoIdentificacao(nome, documento)
+            );
+        }
+
+        if (nome != null) {
+            return pacienteMapper.toResponseList(
+                    pacienteRepository.findByNomeContainingIgnoreCase(nome)
+            );
+        }
+
+        if (documento != null) {
+            Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documento)
+                    .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+
+            return List.of(pacienteMapper.toResponse(paciente));
+        }
+
+        return listar();
     }
 
     @Transactional(readOnly = true)

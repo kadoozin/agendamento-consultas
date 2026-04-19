@@ -28,9 +28,11 @@ public class PacienteController {
         return ResponseEntity.ok(pacienteService.buscarPorId(id));
     }
 
-    @GetMapping("/{documento}")
-    public ResponseEntity<PacienteResponse> buscarPorDocumentoIdentificacao(@PathVariable String documentoIdentificacao){
-        return ResponseEntity.ok(pacienteService.buscarPorDocumentoIdentificacao(documentoIdentificacao));
+    @GetMapping
+    public ResponseEntity<List<PacienteResponse>> buscar(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String documento){
+        return ResponseEntity.ok(pacienteService.buscar(nome, documento));
     }
 
     @GetMapping
@@ -44,7 +46,7 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<PacienteResponse> deletar(@PathVariable Long id){
+    public ResponseEntity<Void> deletar(@PathVariable Long id){
         pacienteService.deletar(id);
         return ResponseEntity.noContent().build();
     }
