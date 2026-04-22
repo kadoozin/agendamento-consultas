@@ -6,11 +6,13 @@ import com.example.agendamento_consultas.dto.response.PacienteResponse;
 import com.example.agendamento_consultas.service.PacienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1/pacientes")
@@ -29,15 +31,16 @@ public class PacienteController {
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<PacienteResponse>> buscar(
+    public ResponseEntity<Page<PacienteResponse>> buscar(
             @RequestParam(required = false) String nomeCompleto,
-            @RequestParam(required = false) String documentoIdentificacao){
-        return ResponseEntity.ok(pacienteService.buscar(nomeCompleto, documentoIdentificacao));
+            @RequestParam(required = false) String documentoIdentificacao,
+            @PageableDefault(size = 20, sort = "nomeCompleto", direction = Sort.Direction.ASC) Pageable pageable){
+        return ResponseEntity.ok(pacienteService.buscar(nomeCompleto, documentoIdentificacao, pageable));
     }
 
     @GetMapping
-    public ResponseEntity<List<PacienteResponse>> listar(){
-        return ResponseEntity.ok(pacienteService.listar());
+    public ResponseEntity<Page<PacienteResponse>> listar(@PageableDefault(size = 20, sort = "nomeCompleto") Pageable pageable){
+        return ResponseEntity.ok(pacienteService.listar(pageable));
     }
 
     @PatchMapping("/{id}")

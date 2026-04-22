@@ -10,6 +10,8 @@ import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.PacienteMapper;
 import com.example.agendamento_consultas.mapper.PacienteUpdateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,17 +34,17 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> buscar(String nomeCompleto, String documentoIdentificacao) {
+    public Page<PacienteResponse> buscar(String nomeCompleto, String documentoIdentificacao, Pageable pageable) {
 
         if (nomeCompleto != null && documentoIdentificacao != null) {
-            return pacienteMapper.toResponseList(
-                    pacienteRepository.findByNomeCompletoContainingIgnoreCaseAndDocumentoIdentificacao(nomeCompleto, documentoIdentificacao)
+            return pacienteMapper.toResponsePage(
+                    pacienteRepository.findByNomeCompletoContainingIgnoreCaseAndDocumentoIdentificacao(nomeCompleto, documentoIdentificacao, pageable)
             );
         }
 
         if (nomeCompleto != null) {
-            return pacienteMapper.toResponseList(
-                    pacienteRepository.findByNomeCompletoContainingIgnoreCase(nomeCompleto)
+            return pacienteMapper.toResponsePage(
+                    pacienteRepository.findByNomeCompletoContainingIgnoreCase(nomeCompleto, pageable)
             );
         }
 
@@ -50,10 +52,10 @@ public class PacienteService {
             Paciente paciente = pacienteRepository.findByDocumentoIdentificacao(documentoIdentificacao)
                     .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-            return List.of(pacienteMapper.toResponse(paciente));
+            return new org.springframework.data.domain.PageImpl<>(List.of(pacienteMapper.toResponse(paciente)));
         }
 
-        return listar();
+        return listar(pageable);
     }
 
     @Transactional(readOnly = true)
@@ -65,8 +67,8 @@ public class PacienteService {
     }
 
     @Transactional(readOnly = true)
-    public List<PacienteResponse> listar() {
-        return pacienteMapper.toResponseList(pacienteRepository.findAll());
+    public Page<PacienteResponse> listar(Pageable pageable) {
+        return pacienteMapper.toResponsePage(pacienteRepository.findAll(pageable));
     }
 
     @Transactional
