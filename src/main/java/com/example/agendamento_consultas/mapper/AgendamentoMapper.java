@@ -6,6 +6,7 @@ import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import org.mapstruct.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
 public interface AgendamentoMapper {
@@ -17,4 +18,8 @@ public interface AgendamentoMapper {
     Agendamento toEntity(AgendamentoCreateRequest request);
 
     List<AgendamentoResponse> toResponseList(List<Agendamento> agendamentos);
+
+    default Page<AgendamentoResponse> toResponsePage(Page<Agendamento> agendamentos) {
+        return agendamentos.map(this::toResponse);
+    }
 }

@@ -6,11 +6,12 @@ import com.example.agendamento_consultas.dto.response.ContatoResponse;
 import com.example.agendamento_consultas.service.ContatoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/v1/contatos")
@@ -38,9 +39,9 @@ public class ContatoController {
         return ResponseEntity.ok(contatoService.buscarPorNumero(numero));
     }
 
-    @GetMapping("/listar")
-    public ResponseEntity<List<ContatoResponse>> listar(){
-        return ResponseEntity.ok(contatoService.listarTodos());
+    @GetMapping
+    public ResponseEntity<Page<ContatoResponse>> listar(@PageableDefault(size = 20, sort = "id") Pageable pageable){
+        return ResponseEntity.ok(contatoService.listarTodos(pageable));
     }
 
     @PutMapping("/{id}")

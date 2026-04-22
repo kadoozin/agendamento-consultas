@@ -12,6 +12,8 @@ import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.ContatoMapper;
 import com.example.agendamento_consultas.mapper.ContatoUpdateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +22,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ContatoService {
-
     private final ContatoRepository contatoRepository;
     private final ContatoMapper contatoMapper;
     private final ContatoUpdateMapper contatoUpdateMapper;
@@ -65,8 +66,8 @@ public class ContatoService {
     }
 
     @Transactional(readOnly = true)
-    public List<ContatoResponse> listarTodos() {
-        return contatoMapper.toResponseList(contatoRepository.findAll());
+    public Page<ContatoResponse> listarTodos(Pageable pageable) {
+        return contatoMapper.toResponsePage(contatoRepository.findAll(pageable));
     }
 
     @Transactional

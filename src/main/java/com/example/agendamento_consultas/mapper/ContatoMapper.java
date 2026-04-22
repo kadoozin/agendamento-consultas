@@ -7,6 +7,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
 public interface ContatoMapper {
@@ -17,4 +18,8 @@ public interface ContatoMapper {
     Contato toEntity(ContatoCreateRequest request);
 
     List<ContatoResponse> toResponseList(List<Contato> contatos);
+
+    default Page<ContatoResponse> toResponsePage(Page<Contato> contatos) {
+        return contatos.map(this::toResponse);
+    }
 }
