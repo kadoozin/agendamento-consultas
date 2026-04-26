@@ -4,6 +4,7 @@ import com.example.agendamento_consultas.database.enums.TipoConsulta;
 import com.example.agendamento_consultas.dto.request.AgendamentoCreateRequest;
 import com.example.agendamento_consultas.dto.request.AgendamentoUpdateRequest;
 import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
+import com.example.agendamento_consultas.dto.response.PageResponse;
 import com.example.agendamento_consultas.service.AgendamentoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +20,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/agendamentos")
 @RequiredArgsConstructor
 public class AgendamentoController {
+
     private final AgendamentoService agendamentoService;
 
     @PostMapping
-    public ResponseEntity<AgendamentoResponse> criar(@RequestBody @Valid AgendamentoCreateRequest request) {
+    public ResponseEntity<AgendamentoResponse> criar(
+            @RequestBody @Valid AgendamentoCreateRequest request) {
+
         return ResponseEntity.status(HttpStatus.CREATED).body(agendamentoService.criar(request));
     }
 
@@ -32,15 +36,19 @@ public class AgendamentoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<AgendamentoResponse>> listar(
+    public ResponseEntity<PageResponse<AgendamentoResponse>> listar(
             @RequestParam(required = false) TipoConsulta tipoConsulta,
             @PageableDefault(size = 20, sort = "data", direction = Sort.Direction.DESC) Pageable pageable) {
-        return ResponseEntity.ok(agendamentoService.listar(tipoConsulta, pageable));
+
+        Page<AgendamentoResponse> page = agendamentoService.listar(tipoConsulta, pageable);
+        return ResponseEntity.ok(PageResponse.from(page));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<AgendamentoResponse> atualizar(@PathVariable Long id,
-                                                         @RequestBody @Valid AgendamentoUpdateRequest request) {
+    public ResponseEntity<AgendamentoResponse> atualizar(
+            @PathVariable Long id,
+            @RequestBody @Valid AgendamentoUpdateRequest request) {
+
         return ResponseEntity.ok(agendamentoService.atualizar(id, request));
     }
 
