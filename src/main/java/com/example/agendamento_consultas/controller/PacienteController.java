@@ -3,6 +3,7 @@ package com.example.agendamento_consultas.controller;
 import com.example.agendamento_consultas.dto.request.PacienteCreateRequest;
 import com.example.agendamento_consultas.dto.request.PacienteUpdateRequest;
 import com.example.agendamento_consultas.dto.response.PacienteResponse;
+import com.example.agendamento_consultas.dto.response.PageResponse;
 import com.example.agendamento_consultas.service.PacienteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -31,16 +32,21 @@ public class PacienteController {
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<Page<PacienteResponse>> buscar(
+    public ResponseEntity<PageResponse<PacienteResponse>> buscar(
             @RequestParam(required = false) String nomeCompleto,
             @RequestParam(required = false) String documentoIdentificacao,
             @PageableDefault(size = 20, sort = "nomeCompleto", direction = Sort.Direction.ASC) Pageable pageable){
-        return ResponseEntity.ok(pacienteService.buscar(nomeCompleto, documentoIdentificacao, pageable));
+
+        Page<PacienteResponse> page = pacienteService.buscar(nomeCompleto, documentoIdentificacao, pageable);
+        return ResponseEntity.ok(PageResponse.from(page));
     }
 
     @GetMapping
-    public ResponseEntity<Page<PacienteResponse>> listar(@PageableDefault(size = 20, sort = "nomeCompleto") Pageable pageable){
-        return ResponseEntity.ok(pacienteService.listar(pageable));
+    public ResponseEntity<PageResponse<PacienteResponse>> listar(
+            @PageableDefault(size = 20, sort = "nomeCompleto") Pageable pageable){
+
+        Page<PacienteResponse> page = pacienteService.listar(pageable);
+        return ResponseEntity.ok(PageResponse.from(page));
     }
 
     @PatchMapping("/{id}")

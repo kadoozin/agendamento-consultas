@@ -3,6 +3,7 @@ package com.example.agendamento_consultas.controller;
 import com.example.agendamento_consultas.dto.request.ContatoCreateRequest;
 import com.example.agendamento_consultas.dto.request.ContatoUpdateRequest;
 import com.example.agendamento_consultas.dto.response.ContatoResponse;
+import com.example.agendamento_consultas.dto.response.PageResponse;
 import com.example.agendamento_consultas.service.ContatoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/v1/contatos")
 @RequiredArgsConstructor
 public class ContatoController {
+
     private final ContatoService contatoService;
 
     @PostMapping
@@ -40,13 +42,18 @@ public class ContatoController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<ContatoResponse>> listar(@PageableDefault(size = 20, sort = "id") Pageable pageable){
-        return ResponseEntity.ok(contatoService.listarTodos(pageable));
+    public ResponseEntity<PageResponse<ContatoResponse>> listar(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable){
+
+        Page<ContatoResponse> page = contatoService.listarTodos(pageable);
+        return ResponseEntity.ok(PageResponse.from(page));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ContatoResponse> atualizar(@PathVariable Long id,
-                                                     @RequestBody @Valid ContatoUpdateRequest request){
+    public ResponseEntity<ContatoResponse> atualizar(
+            @PathVariable Long id,
+            @RequestBody @Valid ContatoUpdateRequest request){
+
         return ResponseEntity.ok(contatoService.atualizar(id, request));
     }
 
