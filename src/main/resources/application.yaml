@@ -21,3 +21,14 @@ jwt:
 
 viacep:
   url: https://viacep.com.br/ws
+
+twilio:
+  enabled: ${TWILIO_ENABLED:false}
+  account-sid: ${TWILIO_ACCOUNT_SID:}
+  auth-token: ${TWILIO_AUTH_TOKEN:}
+  from: ${TWILIO_FROM:}
+  channel: ${TWILIO_CHANNEL:whatsapp}
+
+app:
+  reminders:
+    cron: ${REMINDERS_CRON:0 0 8 * * *}
