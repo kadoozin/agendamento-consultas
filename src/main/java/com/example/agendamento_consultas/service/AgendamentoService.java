@@ -1,5 +1,6 @@
 package com.example.agendamento_consultas.service;
 
+import com.example.agendamento_consultas.database.enums.AgendamentoStatus;
 import com.example.agendamento_consultas.database.enums.TipoConsulta;
 import com.example.agendamento_consultas.database.model.Agendamento;
 import com.example.agendamento_consultas.database.model.Paciente;
@@ -29,6 +30,7 @@ public class AgendamentoService {
     private final PacienteRepository pacienteRepository;
     private final AgendamentoMapper agendamentoMapper;
     private final AgendamentoUpdateMapper agendamentoUpdateMapper;
+    private final AgendamentoNotificationService agendamentoNotificationService;
 
     @Transactional
     public AgendamentoResponse criar(AgendamentoCreateRequest request) {
@@ -40,7 +42,10 @@ public class AgendamentoService {
         Agendamento agendamento = agendamentoMapper.toEntity(request);
         agendamento.setPaciente(paciente);
 
-        return agendamentoMapper.toResponse(agendamentoRepository.save(agendamento));
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+        agendamentoNotificationService.enviarConfirmacao(agendamentoSalvo);
+
+        return agendamentoMapper.toResponse(agendamentoSalvo);
     }
 
     @Transactional(readOnly = true)
@@ -66,9 +71,28 @@ public class AgendamentoService {
 
         validarAgendamentoUpdate(request, id, agendamento);
 
+        LocalDate dataAnterior = agendamento.getData();
+        LocalTime horarioAnterior = agendamento.getHorario();
+        TipoConsulta tipoConsultaAnterior = agendamento.getTipoConsulta();
+        AgendamentoStatus statusAnterior = agendamento.getStatus();
+
         agendamentoUpdateMapper.updateEntity(request, agendamento);
 
-        return agendamentoMapper.toResponse(agendamentoRepository.save(agendamento));
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+
+        if (statusAnterior != AgendamentoStatus.CONCLUIDO
+                && agendamentoSalvo.getStatus() == AgendamentoStatus.CONCLUIDO) {
+            agendamentoNotificationService.enviarAgradecimento(agendamentoSalvo);
+        } else {
+            agendamentoNotificationService.enviarAtualizacao(
+                    agendamentoSalvo,
+                    dataAnterior,
+                    horarioAnterior,
+                    tipoConsultaAnterior
+            );
+        }
+
+        return agendamentoMapper.toResponse(agendamentoSalvo);
     }
 
     @Transactional
