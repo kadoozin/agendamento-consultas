@@ -2,8 +2,7 @@ package com.example.agendamento_consultas.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record RegisterRequest(
-        @NotBlank String email,
-        @NotBlank String senha
+public record RefreshTokenRequest(
+        @NotBlank String refreshToken
 ) {
 }
