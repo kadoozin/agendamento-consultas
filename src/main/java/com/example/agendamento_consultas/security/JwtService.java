@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Date;
 
 @Service
@@ -26,6 +27,9 @@ public class JwtService {
 
     @PostConstruct
     public void init() {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT_SECRET deve ter pelo menos 32 bytes para HS256");
+        }
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -43,6 +47,14 @@ public class JwtService {
 
     public String extrairUsername(String token) {
         return extrairClaims(token).getSubject();
+    }
+
+    public Instant extrairExpiracao(String token) {
+        return extrairClaims(token).getExpiration().toInstant();
+    }
+
+    public Long getExpirationMillis() {
+        return expirationMillis;
     }
 
     public boolean tokenValido(String token, UserDetails userDetails) {
