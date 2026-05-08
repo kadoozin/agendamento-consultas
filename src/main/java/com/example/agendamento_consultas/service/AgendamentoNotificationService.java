@@ -72,13 +72,14 @@ public class AgendamentoNotificationService {
     }
 
     private String montarMensagem(Agendamento agendamento, String titulo) {
-        return "%s: %s, sua consulta %s esta marcada para %s as %s."
+        return "%s: %s, sua consulta %s esta marcada para %s das %s as %s."
                 .formatted(
                         titulo,
                         agendamento.getPaciente().getNomeCompleto(),
                         agendamento.getTipoConsulta().name().toLowerCase(),
                         agendamento.getData().format(DATA_FORMATTER),
-                        agendamento.getHorario().format(HORARIO_FORMATTER)
+                        agendamento.getHorario().format(HORARIO_FORMATTER),
+                        agendamento.getHorarioFim().format(HORARIO_FORMATTER)
                 );
     }
 
@@ -115,13 +116,14 @@ public class AgendamentoNotificationService {
             return montarMensagem(agendamento, "Consulta atualizada");
         }
 
-        return "Consulta atualizada: %s, sua consulta foi alterada: %s. Novo agendamento: %s em %s as %s."
+        return "Consulta atualizada: %s, sua consulta foi alterada: %s. Novo agendamento: %s em %s das %s as %s."
                 .formatted(
                         agendamento.getPaciente().getNomeCompleto(),
                         String.join(", ", alteracoes),
                         formatarTipoConsulta(agendamento.getTipoConsulta()),
                         agendamento.getData().format(DATA_FORMATTER),
-                        agendamento.getHorario().format(HORARIO_FORMATTER)
+                        agendamento.getHorario().format(HORARIO_FORMATTER),
+                        agendamento.getHorarioFim().format(HORARIO_FORMATTER)
                 );
     }
 

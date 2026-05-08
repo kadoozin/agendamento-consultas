@@ -9,18 +9,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.List;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> {
-    boolean existsByDataAndHorario(LocalDate data, LocalTime horario);
+    List<Agendamento> findByData(LocalDate data);
 
-    boolean existsByDataAndHorarioAndIdNot(LocalDate data, LocalTime horario, Long id);
-
-    boolean existsByPacienteIdAndDataAndHorario(Long pacienteId, LocalDate data, LocalTime horario);
-
-    boolean existsByPacienteIdAndDataAndHorarioAndIdNot(Long pacienteId, LocalDate data, LocalTime horario, Long id);
+    List<Agendamento> findByDataAndIdNot(LocalDate data, Long id);
 
     Page<Agendamento> findByTipoConsulta(TipoConsulta tipoConsulta, Pageable pageable);
 

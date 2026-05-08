@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +36,15 @@ public class AgendamentoService {
     @Transactional
     public AgendamentoResponse criar(AgendamentoCreateRequest request) {
         Paciente paciente = pacienteRepository.findByIdWithContatos(request.pacienteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente nao encontrado"));
 
-        validarAgendamentoCreate(request, null);
+        validarAgendamento(
+                request.data(),
+                request.horario(),
+                request.duracaoMinutos(),
+                paciente.getId(),
+                null
+        );
 
         Agendamento agendamento = agendamentoMapper.toEntity(request);
         agendamento.setPaciente(paciente);
@@ -51,14 +58,14 @@ public class AgendamentoService {
     @Transactional(readOnly = true)
     public AgendamentoResponse buscarPorId(Long id) {
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
 
         return agendamentoMapper.toResponse(agendamento);
     }
 
     @Transactional(readOnly = true)
     public Page<AgendamentoResponse> listar(TipoConsulta tipoConsulta, Pageable pageable) {
-        if (tipoConsulta != null){
+        if (tipoConsulta != null) {
             return agendamentoMapper.toResponsePage(agendamentoRepository.findByTipoConsulta(tipoConsulta, pageable));
         }
         return agendamentoMapper.toResponsePage(agendamentoRepository.findAll(pageable));
@@ -67,9 +74,16 @@ public class AgendamentoService {
     @Transactional
     public AgendamentoResponse atualizar(Long id, AgendamentoUpdateRequest request) {
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
 
-        validarAgendamentoUpdate(request, id, agendamento);
+        Paciente paciente = resolverPacienteAtualizacao(request, agendamento);
+        LocalDate data = request.data() != null ? request.data() : agendamento.getData();
+        LocalTime horario = request.horario() != null ? request.horario() : agendamento.getHorario();
+        Integer duracaoMinutos = request.duracaoMinutos() != null
+                ? request.duracaoMinutos()
+                : agendamento.getDuracaoMinutos();
+
+        validarAgendamento(data, horario, duracaoMinutos, paciente.getId(), id);
 
         LocalDate dataAnterior = agendamento.getData();
         LocalTime horarioAnterior = agendamento.getHorario();
@@ -77,6 +91,7 @@ public class AgendamentoService {
         AgendamentoStatus statusAnterior = agendamento.getStatus();
 
         agendamentoUpdateMapper.updateEntity(request, agendamento);
+        agendamento.setPaciente(paciente);
 
         Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
 
@@ -98,66 +113,80 @@ public class AgendamentoService {
     @Transactional
     public void deletar(Long id) {
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Agendamento não encontrado"));
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
 
         agendamentoRepository.delete(agendamento);
     }
 
-    private void validarAgendamentoCreate(AgendamentoCreateRequest request, Long id) {
-        if (request.data().isBefore(LocalDate.now())) {
-            throw new BusinessException("Não é possível agendar para datas passadas");
+    private Paciente resolverPacienteAtualizacao(AgendamentoUpdateRequest request, Agendamento agendamento) {
+        if (request.pacienteId() == null || request.pacienteId().equals(agendamento.getPaciente().getId())) {
+            return agendamento.getPaciente();
         }
 
-        boolean horarioIndisponivel =
-                agendamentoRepository.existsByDataAndHorario(request.data(), request.horario());
+        return pacienteRepository.findByIdWithContatos(request.pacienteId())
+                .orElseThrow(() -> new ResourceNotFoundException("Paciente nao encontrado"));
+    }
 
-        boolean pacienteJaAgendado =
-                agendamentoRepository.existsByPacienteIdAndDataAndHorario(
-                        request.pacienteId(),
-                        request.data(),
-                        request.horario()
-                );
+    private void validarAgendamento(
+            LocalDate data,
+            LocalTime horario,
+            Integer duracaoMinutos,
+            Long pacienteId,
+            Long agendamentoIgnoradoId
+    ) {
+        if (data.isBefore(LocalDate.now())) {
+            throw new BusinessException("Nao e possivel agendar para datas passadas");
+        }
+
+        LocalTime horarioFim = horario.plusMinutes(duracaoMinutos);
+        if (!horarioFim.isAfter(horario)) {
+            throw new BusinessException("O horario final da consulta deve ser no mesmo dia e posterior ao inicio");
+        }
+
+        List<Agendamento> agendamentosNoDia = buscarAgendamentosNoDia(data, agendamentoIgnoradoId).stream()
+                .filter(agendamento -> agendamento.getStatus() != AgendamentoStatus.CANCELADO)
+                .toList();
+
+        boolean horarioIndisponivel = agendamentosNoDia.stream()
+                .anyMatch(agendamentoExistente -> horariosSeSobrepoem(
+                        horario,
+                        horarioFim,
+                        agendamentoExistente.getHorario(),
+                        agendamentoExistente.getHorarioFim()
+                ));
 
         if (horarioIndisponivel) {
-            throw new BusinessException("Horário já ocupado");
+            throw new BusinessException("Ja existe outro agendamento que sobrepoe este intervalo");
         }
 
+        boolean pacienteJaAgendado = agendamentosNoDia.stream()
+                .filter(agendamento -> agendamento.getPaciente().getId().equals(pacienteId))
+                .anyMatch(agendamentoExistente -> horariosSeSobrepoem(
+                        horario,
+                        horarioFim,
+                        agendamentoExistente.getHorario(),
+                        agendamentoExistente.getHorarioFim()
+                ));
+
         if (pacienteJaAgendado) {
-            throw new BusinessException("Paciente já possui agendamento neste horário");
+            throw new BusinessException("Paciente ja possui outro agendamento que sobrepoe este intervalo");
         }
     }
 
-    private void validarAgendamentoUpdate(AgendamentoUpdateRequest request, Long id, Agendamento agendamentoAtual) {
-
-        LocalDate data = request.data() != null ? request.data() : agendamentoAtual.getData();
-        LocalTime horario = request.horario() != null ? request.horario() : agendamentoAtual.getHorario();
-        Long pacienteId = request.pacienteId() != null ? request.pacienteId() : agendamentoAtual.getPaciente().getId();
-
-        if (data.isBefore(LocalDate.now())) {
-            throw new BusinessException("Não é possível agendar para datas passadas");
+    private List<Agendamento> buscarAgendamentosNoDia(LocalDate data, Long agendamentoIgnoradoId) {
+        if (agendamentoIgnoradoId == null) {
+            return agendamentoRepository.findByData(data);
         }
 
-        boolean horarioIndisponivel =
-                agendamentoRepository.existsByDataAndHorarioAndIdNot(
-                        data,
-                        horario,
-                        id
-                );
+        return agendamentoRepository.findByDataAndIdNot(data, agendamentoIgnoradoId);
+    }
 
-        if (horarioIndisponivel) {
-            throw new BusinessException("Horário já ocupado");
-        }
-
-        boolean pacienteJaAgendado =
-                agendamentoRepository.existsByPacienteIdAndDataAndHorarioAndIdNot(
-                        pacienteId,
-                        data,
-                        horario,
-                        id
-                );
-
-        if (pacienteJaAgendado) {
-            throw new BusinessException("Paciente já possui agendamento neste horário");
-        }
+    private boolean horariosSeSobrepoem(
+            LocalTime inicioSolicitado,
+            LocalTime fimSolicitado,
+            LocalTime inicioExistente,
+            LocalTime fimExistente
+    ) {
+        return inicioSolicitado.isBefore(fimExistente) && fimSolicitado.isAfter(inicioExistente);
     }
 }

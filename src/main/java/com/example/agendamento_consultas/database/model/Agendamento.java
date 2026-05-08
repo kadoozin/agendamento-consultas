@@ -32,6 +32,9 @@ public class Agendamento {
     @Column(nullable = false)
     private LocalTime horario;
 
+    @Column(nullable = false)
+    private Integer duracaoMinutos;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private AgendamentoStatus status = AgendamentoStatus.AGENDADO;
@@ -39,4 +42,12 @@ public class Agendamento {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoConsulta tipoConsulta;
+
+    public LocalTime getHorarioFim() {
+        if (horario == null || duracaoMinutos == null) {
+            return null;
+        }
+
+        return horario.plusMinutes(duracaoMinutos);
+    }
 }
