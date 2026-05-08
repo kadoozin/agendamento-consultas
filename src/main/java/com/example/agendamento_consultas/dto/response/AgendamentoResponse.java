@@ -14,6 +14,8 @@ public record AgendamentoResponse(
         PacienteResponse paciente,
         @JsonFormat(pattern = "dd/MM/yyyy") LocalDate data,
         @JsonFormat(pattern = "HH:mm") LocalTime horario,
+        @JsonFormat(pattern = "HH:mm") LocalTime horarioFim,
+        Integer duracaoMinutos,
         AgendamentoStatus status,
         TipoConsulta tipoConsulta
 ) {

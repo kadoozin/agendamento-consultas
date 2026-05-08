@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
 public interface AgendamentoMapper {
+    @Mapping(target = "horarioFim", expression = "java(agendamento.getHorarioFim())")
     AgendamentoResponse toResponse(Agendamento agendamento);
 
     @Mapping(target = "id", ignore = true)
