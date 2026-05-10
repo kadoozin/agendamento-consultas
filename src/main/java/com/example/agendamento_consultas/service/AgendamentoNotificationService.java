@@ -50,6 +50,11 @@ public class AgendamentoNotificationService {
         enviarMensagem(agendamento, "Lembrete de consulta");
     }
 
+    public void enviarCancelamento(Agendamento agendamento) {
+        buscarTelefonePrincipal(agendamento)
+                .ifPresent(numero -> notificationService.enviarMensagem(numero, montarMensagemCancelamento(agendamento)));
+    }
+
     public void enviarAgradecimento(Agendamento agendamento) {
         if (agendamento.getStatus() != AgendamentoStatus.CONCLUIDO) {
             return;
@@ -134,5 +139,16 @@ public class AgendamentoNotificationService {
     private String montarMensagemAgradecimento(Agendamento agendamento) {
         return "%s, sua consulta foi concluida. Obrigado por escolher nossos servicos!"
                 .formatted(agendamento.getPaciente().getNomeCompleto());
+    }
+
+    private String montarMensagemCancelamento(Agendamento agendamento) {
+        return "Consulta cancelada: %s, sua consulta %s marcada para %s das %s as %s foi cancelada."
+                .formatted(
+                        agendamento.getPaciente().getNomeCompleto(),
+                        formatarTipoConsulta(agendamento.getTipoConsulta()),
+                        agendamento.getData().format(DATA_FORMATTER),
+                        agendamento.getHorario().format(HORARIO_FORMATTER),
+                        agendamento.getHorarioFim().format(HORARIO_FORMATTER)
+                );
     }
 }

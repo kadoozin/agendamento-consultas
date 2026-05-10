@@ -9,6 +9,7 @@ import com.example.agendamento_consultas.database.repository.AgendamentoReposito
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
 import com.example.agendamento_consultas.dto.request.AgendamentoCreateRequest;
 import com.example.agendamento_consultas.dto.request.AgendamentoUpdateRequest;
+import com.example.agendamento_consultas.dto.request.ReagendamentoRequest;
 import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import com.example.agendamento_consultas.exception.BusinessException;
 import com.example.agendamento_consultas.mapper.AgendamentoMapper;
@@ -255,6 +256,102 @@ class AgendamentoServiceTest {
         );
         assertEquals(request.data(), agendamentoCaptor.getValue().getData());
         assertEquals(request.horario(), agendamentoCaptor.getValue().getHorario());
+    }
+
+    @Test
+    void deveCancelarAgendamentoAgendado() {
+        LocalDate data = LocalDate.now().plusDays(2);
+        Agendamento agendamento = agendamento(10L, paciente(1L), data, LocalTime.of(10, 0), 60);
+
+        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(agendamento));
+        when(agendamentoRepository.save(agendamento)).thenReturn(agendamento);
+        when(agendamentoMapper.toResponse(agendamento)).thenReturn(new AgendamentoResponse(
+                agendamento.getId(),
+                null,
+                agendamento.getData(),
+                agendamento.getHorario(),
+                agendamento.getHorarioFim(),
+                agendamento.getDuracaoMinutos(),
+                AgendamentoStatus.CANCELADO,
+                agendamento.getTipoConsulta()
+        ));
+
+        AgendamentoResponse response = agendamentoService.cancelar(10L);
+
+        assertEquals(AgendamentoStatus.CANCELADO, agendamento.getStatus());
+        assertEquals(AgendamentoStatus.CANCELADO, response.status());
+        verify(agendamentoNotificationService).enviarCancelamento(agendamento);
+    }
+
+    @Test
+    void deveImpedirCancelamentoDeAgendamentoConcluido() {
+        LocalDate data = LocalDate.now().plusDays(2);
+        Agendamento agendamento = agendamento(10L, paciente(1L), data, LocalTime.of(10, 0), 60);
+        agendamento.setStatus(AgendamentoStatus.CONCLUIDO);
+
+        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(agendamento));
+
+        assertThrows(BusinessException.class, () -> agendamentoService.cancelar(10L));
+
+        verify(agendamentoRepository, never()).save(any());
+        verify(agendamentoNotificationService, never()).enviarCancelamento(any());
+    }
+
+    @Test
+    void deveReagendarAgendamentoAgendado() {
+        LocalDate dataOriginal = LocalDate.now().plusDays(2);
+        Agendamento agendamento = agendamento(10L, paciente(1L), dataOriginal, LocalTime.of(10, 0), 60);
+        ReagendamentoRequest request = new ReagendamentoRequest(
+                dataOriginal.plusDays(1),
+                LocalTime.of(11, 30),
+                90
+        );
+
+        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(agendamento));
+        when(agendamentoRepository.findByDataAndIdNot(request.data(), 10L)).thenReturn(List.of());
+        when(agendamentoRepository.save(agendamento)).thenReturn(agendamento);
+        when(agendamentoMapper.toResponse(agendamento)).thenReturn(new AgendamentoResponse(
+                agendamento.getId(),
+                null,
+                request.data(),
+                request.horario(),
+                request.horario().plusMinutes(request.duracaoMinutos()),
+                request.duracaoMinutos(),
+                AgendamentoStatus.AGENDADO,
+                agendamento.getTipoConsulta()
+        ));
+
+        AgendamentoResponse response = agendamentoService.reagendar(10L, request);
+
+        assertEquals(request.data(), agendamento.getData());
+        assertEquals(request.horario(), agendamento.getHorario());
+        assertEquals(request.duracaoMinutos(), agendamento.getDuracaoMinutos());
+        assertEquals(request.data(), response.data());
+        verify(agendamentoNotificationService).enviarAtualizacao(
+                agendamento,
+                dataOriginal,
+                LocalTime.of(10, 0),
+                TipoConsulta.PRESENCIAL
+        );
+    }
+
+    @Test
+    void deveImpedirReagendamentoDeAgendamentoCancelado() {
+        LocalDate data = LocalDate.now().plusDays(2);
+        Agendamento agendamento = agendamento(10L, paciente(1L), data, LocalTime.of(10, 0), 60);
+        ReagendamentoRequest request = new ReagendamentoRequest(
+                data.plusDays(1),
+                LocalTime.of(11, 30),
+                90
+        );
+        agendamento.setStatus(AgendamentoStatus.CANCELADO);
+
+        when(agendamentoRepository.findById(10L)).thenReturn(Optional.of(agendamento));
+
+        assertThrows(BusinessException.class, () -> agendamentoService.reagendar(10L, request));
+
+        verify(agendamentoRepository, never()).save(any());
+        verify(agendamentoNotificationService, never()).enviarAtualizacao(any(), any(), any(), any());
     }
 
     private Paciente paciente(Long id) {
