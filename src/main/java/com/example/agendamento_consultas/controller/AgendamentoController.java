@@ -3,6 +3,7 @@ package com.example.agendamento_consultas.controller;
 import com.example.agendamento_consultas.database.enums.TipoConsulta;
 import com.example.agendamento_consultas.dto.request.AgendamentoCreateRequest;
 import com.example.agendamento_consultas.dto.request.AgendamentoUpdateRequest;
+import com.example.agendamento_consultas.dto.request.ReagendamentoRequest;
 import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import com.example.agendamento_consultas.dto.response.PageResponse;
 import com.example.agendamento_consultas.service.AgendamentoService;
@@ -50,6 +51,19 @@ public class AgendamentoController {
             @RequestBody @Valid AgendamentoUpdateRequest request) {
 
         return ResponseEntity.ok(agendamentoService.atualizar(id, request));
+    }
+
+    @PatchMapping("/{id}/reagendamento")
+    public ResponseEntity<AgendamentoResponse> reagendar(
+            @PathVariable Long id,
+            @RequestBody @Valid ReagendamentoRequest request) {
+
+        return ResponseEntity.ok(agendamentoService.reagendar(id, request));
+    }
+
+    @PatchMapping("/{id}/cancelamento")
+    public ResponseEntity<AgendamentoResponse> cancelar(@PathVariable Long id) {
+        return ResponseEntity.ok(agendamentoService.cancelar(id));
     }
 
     @DeleteMapping("/{id}")

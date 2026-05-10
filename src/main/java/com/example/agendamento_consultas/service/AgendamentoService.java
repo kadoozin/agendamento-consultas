@@ -8,6 +8,7 @@ import com.example.agendamento_consultas.database.repository.AgendamentoReposito
 import com.example.agendamento_consultas.database.repository.PacienteRepository;
 import com.example.agendamento_consultas.dto.request.AgendamentoCreateRequest;
 import com.example.agendamento_consultas.dto.request.AgendamentoUpdateRequest;
+import com.example.agendamento_consultas.dto.request.ReagendamentoRequest;
 import com.example.agendamento_consultas.dto.response.AgendamentoResponse;
 import com.example.agendamento_consultas.exception.BusinessException;
 import com.example.agendamento_consultas.exception.ResourceNotFoundException;
@@ -111,6 +112,54 @@ public class AgendamentoService {
     }
 
     @Transactional
+    public AgendamentoResponse reagendar(Long id, ReagendamentoRequest request) {
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
+
+        validarReagendamento(agendamento);
+        validarAgendamento(
+                request.data(),
+                request.horario(),
+                request.duracaoMinutos(),
+                agendamento.getPaciente().getId(),
+                id
+        );
+
+        LocalDate dataAnterior = agendamento.getData();
+        LocalTime horarioAnterior = agendamento.getHorario();
+        TipoConsulta tipoConsultaAnterior = agendamento.getTipoConsulta();
+
+        agendamento.setData(request.data());
+        agendamento.setHorario(request.horario());
+        agendamento.setDuracaoMinutos(request.duracaoMinutos());
+        agendamento.setStatus(AgendamentoStatus.AGENDADO);
+
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+        agendamentoNotificationService.enviarAtualizacao(
+                agendamentoSalvo,
+                dataAnterior,
+                horarioAnterior,
+                tipoConsultaAnterior
+        );
+
+        return agendamentoMapper.toResponse(agendamentoSalvo);
+    }
+
+    @Transactional
+    public AgendamentoResponse cancelar(Long id) {
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
+
+        validarCancelamento(agendamento);
+        agendamento.setStatus(AgendamentoStatus.CANCELADO);
+
+        Agendamento agendamentoSalvo = agendamentoRepository.save(agendamento);
+        agendamentoNotificationService.enviarCancelamento(agendamentoSalvo);
+
+        return agendamentoMapper.toResponse(agendamentoSalvo);
+    }
+
+    @Transactional
     public void deletar(Long id) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
@@ -125,6 +174,26 @@ public class AgendamentoService {
 
         return pacienteRepository.findByIdWithContatos(request.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente nao encontrado"));
+    }
+
+    private void validarReagendamento(Agendamento agendamento) {
+        if (agendamento.getStatus() == AgendamentoStatus.CANCELADO) {
+            throw new BusinessException("Nao e possivel reagendar um agendamento cancelado");
+        }
+
+        if (agendamento.getStatus() == AgendamentoStatus.CONCLUIDO) {
+            throw new BusinessException("Nao e possivel reagendar um agendamento concluido");
+        }
+    }
+
+    private void validarCancelamento(Agendamento agendamento) {
+        if (agendamento.getStatus() == AgendamentoStatus.CANCELADO) {
+            throw new BusinessException("Agendamento ja esta cancelado");
+        }
+
+        if (agendamento.getStatus() == AgendamentoStatus.CONCLUIDO) {
+            throw new BusinessException("Nao e possivel cancelar um agendamento concluido");
+        }
     }
 
     private void validarAgendamento(

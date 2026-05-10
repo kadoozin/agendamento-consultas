@@ -76,7 +76,7 @@ public class PacienteService {
         Paciente paciente = pacienteRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente não encontrado"));
 
-        if (request.documentoIdentificacao() != null){
+        if (request.documentoIdentificacao() != null) {
             validarDocumento(request.documentoIdentificacao(), id);
         }
 
