@@ -111,6 +111,58 @@ class AuthServiceTest {
     }
 
     @Test
+    void deveCriarPrimeiroAdminQuandoBootstrapKeyForValida() {
+        RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
+        Usuario adminSalvo = new Usuario(2L, request.email(), "senhacriptografada", Set.of(Role.ROLE_ADMIN));
+
+        mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminKey", "bootstrap-secreto");
+        when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(false);
+        when(usuarioRepository.findByEmail(request.email())).thenReturn(Optional.empty());
+        when(passwordEncoder.encode(request.senha())).thenReturn("senhacriptografada");
+        when(usuarioRepository.save(any(Usuario.class))).thenReturn(adminSalvo);
+
+        RegisterResponse response = authService.bootstrapAdmin(request, "bootstrap-secreto", servletRequest);
+
+        assertEquals(2L, response.id());
+        assertEquals(request.email(), response.email());
+
+        ArgumentCaptor<Usuario> usuarioCaptor = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarioRepository).save(usuarioCaptor.capture());
+        assertEquals(Set.of(Role.ROLE_ADMIN), usuarioCaptor.getValue().getRoles());
+        verify(authAuditLogRepository).save(any(AuthAuditLog.class));
+    }
+
+    @Test
+    void deveImpedirBootstrapQuandoJaExisteAdmin() {
+        RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
+
+        mockRequestMetadata();
+        when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(true);
+
+        assertThrows(ResourceAlreadyExistsException.class, () ->
+                authService.bootstrapAdmin(request, "bootstrap-secreto", servletRequest));
+
+        verify(usuarioRepository, never()).save(any());
+        verify(authAuditLogRepository).save(any(AuthAuditLog.class));
+    }
+
+    @Test
+    void deveImpedirBootstrapQuandoChaveForInvalida() {
+        RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
+
+        mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminKey", "bootstrap-secreto");
+        when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(false);
+
+        assertThrows(BusinessException.class, () ->
+                authService.bootstrapAdmin(request, "chave-errada", servletRequest));
+
+        verify(usuarioRepository, never()).save(any());
+        verify(authAuditLogRepository).save(any(AuthAuditLog.class));
+    }
+
+    @Test
     void deveGerarAccessTokenERefreshTokenNoLogin() {
         LoginRequest request = new LoginRequest("medico@medico.com", "super123");
         User userDetails = new User(request.email(), "senhacriptografada", List.of());

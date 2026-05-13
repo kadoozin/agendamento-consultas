@@ -23,6 +23,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -35,22 +36,21 @@ public class AuthController {
 
     @Operation(
             summary = "Cadastrar usuário",
-            description = "Cadastra um novo usuário médico. Requer token JWT com perfil ADMIN.",
+            description = "Cadastra um novo usuário médico (somente admin).",
             security = @SecurityRequirement(name = OpenApiConfig.BEARER_AUTH_SCHEME)
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Usuário cadastrado com sucesso",
                     content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
-            @ApiResponse(responseCode = "400", description = "Dados inválidos",
-                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "Não autenticado",
-                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "403", description = "Acesso negado",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Dados inválidos",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
             @ApiResponse(responseCode = "409", description = "Email já cadastrado",
                     content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
     })
     @PostMapping("/register")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RegisterResponse> register(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Dados para cadastro do usuário.",
@@ -64,6 +64,36 @@ public class AuthController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(authService.register(request, servletRequest));
+    }
+
+    @Operation(
+            summary = "Bootstrap do primeiro admin",
+            description = "Cria o primeiro usuário admin quando ainda não existe admin cadastrado."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Admin criado com sucesso",
+                    content = @Content(schema = @Schema(implementation = RegisterResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Bootstrap key inválida ou dados inválidos",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Administrador já cadastrado ou email já existente",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
+    @PostMapping("/bootstrap-admin")
+    public ResponseEntity<RegisterResponse> bootstrapAdmin(
+            @Parameter(description = "Chave de bootstrap do admin.", required = true, example = "minha-chave-segura")
+            @RequestHeader("X-Bootstrap-Key") String bootstrapKey,
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "Dados para cadastro do primeiro admin.",
+                    required = true,
+                    content = @Content(schema = @Schema(implementation = RegisterRequest.class))
+            )
+            @RequestBody @Valid RegisterRequest request,
+            @Parameter(hidden = true)
+            HttpServletRequest servletRequest
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(authService.bootstrapAdmin(request, bootstrapKey, servletRequest));
     }
 
     @Operation(summary = "Realizar login", description = "Autentica usuário e retorna access token + refresh token.")

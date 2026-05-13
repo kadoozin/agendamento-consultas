@@ -28,6 +28,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -50,23 +51,45 @@ public class AuthService {
     @Value("${jwt.refresh-expiration}")
     private Long refreshExpirationMillis;
 
+    @Value("${app.auth.bootstrap-admin-key:}")
+    private String bootstrapAdminKey;
+
     @Transactional
     public RegisterResponse register(RegisterRequest request, HttpServletRequest servletRequest) {
+        Usuario salvo = createUser(request, Set.of(Role.ROLE_MEDICO), "REGISTER", servletRequest);
+        return new RegisterResponse(salvo.getId(), salvo.getEmail());
+    }
 
+    @Transactional
+    public RegisterResponse bootstrapAdmin(RegisterRequest request, String bootstrapKey, HttpServletRequest servletRequest) {
+        if (usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)) {
+            audit("BOOTSTRAP_ADMIN", request.email(), false, servletRequest, "Administrador ja cadastrado");
+            throw new ResourceAlreadyExistsException("Administrador ja cadastrado");
+        }
+
+        if (!StringUtils.hasText(bootstrapAdminKey) || !bootstrapAdminKey.equals(bootstrapKey)) {
+            audit("BOOTSTRAP_ADMIN", request.email(), false, servletRequest, "Bootstrap key invalida");
+            throw new BusinessException("Bootstrap key invalida");
+        }
+
+        Usuario salvo = createUser(request, Set.of(Role.ROLE_ADMIN), "BOOTSTRAP_ADMIN", servletRequest);
+        return new RegisterResponse(salvo.getId(), salvo.getEmail());
+    }
+
+    private Usuario createUser(RegisterRequest request, Set<Role> roles, String action, HttpServletRequest servletRequest) {
         if (usuarioRepository.findByEmail(request.email()).isPresent()) {
-            audit("REGISTER", request.email(), false, servletRequest, "Email ja cadastrado");
+            audit(action, request.email(), false, servletRequest, "Email ja cadastrado");
             throw new ResourceAlreadyExistsException("Email ja cadastrado");
         }
 
         Usuario usuario = new Usuario();
         usuario.setEmail(request.email());
         usuario.setSenha(passwordEncoder.encode(request.senha()));
-        usuario.setRoles(Set.of(Role.ROLE_MEDICO));
+        usuario.setRoles(roles);
 
         Usuario salvo = usuarioRepository.save(usuario);
-        audit("REGISTER", salvo.getEmail(), true, servletRequest, null);
-
-        return new RegisterResponse(salvo.getId(), salvo.getEmail());
+        audit(action, salvo.getEmail(), true, servletRequest, null);
+        return salvo;
     }
 
     @Transactional
