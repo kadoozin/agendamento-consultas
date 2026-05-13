@@ -33,3 +33,12 @@ twilio:
 app:
   reminders:
     cron: ${REMINDERS_CRON:0 0 8 * * *}
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    display-request-duration: true
+    operations-sorter: method
+    tags-sorter: alpha

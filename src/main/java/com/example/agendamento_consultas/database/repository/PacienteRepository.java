@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -22,5 +23,5 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     Page<Paciente> findByNomeCompletoContainingIgnoreCaseAndDocumentoIdentificacao(String nomeCompleto, String documentoIdenficacao, Pageable pageable);
 
     @Query("SELECT p FROM Paciente p LEFT JOIN FETCH p.contatos WHERE p.id = :id")
-    Optional<Paciente> findByIdWithContatos(Long id);
+    Optional<Paciente> findByIdWithContatos(@Param("id") Long id);
 }
