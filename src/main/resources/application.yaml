@@ -31,6 +31,8 @@ twilio:
   channel: ${TWILIO_CHANNEL:whatsapp}
 
 app:
+  auth:
+    bootstrap-admin-key: ${BOOTSTRAP_ADMIN_KEY:}
   reminders:
     cron: ${REMINDERS_CRON:0 0 8 * * *}
 

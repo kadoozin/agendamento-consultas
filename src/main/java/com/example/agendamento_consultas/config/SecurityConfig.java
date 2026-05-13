@@ -54,7 +54,7 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/v1/auth/login", "/v1/auth/refresh").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/v1/auth/login", "/v1/auth/refresh", "/v1/auth/bootstrap-admin").permitAll()
                         .requestMatchers(HttpMethod.POST, "/v1/auth/register").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/v1/auth/logout").authenticated()
                         .requestMatchers("/v1/admin/**").hasRole("ADMIN")
