@@ -15,8 +15,11 @@ import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.mapper.AgendamentoMapper;
 import com.example.agendamento_consultas.mapper.AgendamentoUpdateMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +38,15 @@ public class AgendamentoService {
     private final AgendamentoUpdateMapper agendamentoUpdateMapper;
     private final AgendamentoNotificationService agendamentoNotificationService;
 
+    @Retryable(
+            retryFor = ConcurrencyFailureException.class,
+            maxAttemptsExpression = "${app.retry.serialization.max-attempts:3}",
+            backoff = @Backoff(
+                    delayExpression = "${app.retry.serialization.delay-ms:120}",
+                    multiplier = 2.0,
+                    maxDelay = 1000
+            )
+    )
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse criar(AgendamentoCreateRequest request) {
         Paciente paciente = pacienteRepository.findByIdWithContatos(request.pacienteId())
@@ -73,6 +85,15 @@ public class AgendamentoService {
         return agendamentoMapper.toResponsePage(agendamentoRepository.findAll(pageable));
     }
 
+    @Retryable(
+            retryFor = ConcurrencyFailureException.class,
+            maxAttemptsExpression = "${app.retry.serialization.max-attempts:3}",
+            backoff = @Backoff(
+                    delayExpression = "${app.retry.serialization.delay-ms:120}",
+                    multiplier = 2.0,
+                    maxDelay = 1000
+            )
+    )
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse atualizar(Long id, AgendamentoUpdateRequest request) {
         Agendamento agendamento = agendamentoRepository.findById(id)
@@ -112,6 +133,15 @@ public class AgendamentoService {
         return agendamentoMapper.toResponse(agendamentoSalvo);
     }
 
+    @Retryable(
+            retryFor = ConcurrencyFailureException.class,
+            maxAttemptsExpression = "${app.retry.serialization.max-attempts:3}",
+            backoff = @Backoff(
+                    delayExpression = "${app.retry.serialization.delay-ms:120}",
+                    multiplier = 2.0,
+                    maxDelay = 1000
+            )
+    )
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse reagendar(Long id, ReagendamentoRequest request) {
         Agendamento agendamento = agendamentoRepository.findById(id)

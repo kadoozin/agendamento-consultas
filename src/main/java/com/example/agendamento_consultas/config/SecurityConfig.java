@@ -24,6 +24,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.IOException;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -86,7 +88,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    private void writeJsonError(HttpServletResponse response, int statusCode, String message) throws java.io.IOException {
+    private void writeJsonError(HttpServletResponse response, int statusCode, String message) throws IOException {
         response.setStatus(statusCode);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");

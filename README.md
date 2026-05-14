@@ -82,7 +82,8 @@ Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configura
 - Swagger UI: `http://localhost:8080/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-### Funcionalidades principais
+
+## Funcionalidades principais
 
 - Autenticacao JWT com `login`, `refresh` e `logout`.
 - Bootstrap do primeiro admin com `X-Bootstrap-Key`.
@@ -96,6 +97,27 @@ Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configura
 - Integracao ViaCEP para consulta de endereco por CEP.
 - Integracao Twilio (modo real ou simulado).
 - Controle de acesso por perfil (`ADMIN` e `MEDICO`).
+
+## Padrao de erros da API
+
+- Erros de autenticacao/autorizacao/negocio retornam JSON no formato:
+
+```json
+{
+  "message": "Descricao do erro"
+}
+```
+
+- Em conflitos de concorrencia no banco, a API retorna `409 Conflict` com:
+  - `Conflito de concorrencia. Tente novamente.`
+
+## Controle de concorrencia (retry automatico)
+
+- Operacoes criticas de agendamento e bootstrap de admin usam retry automatico para falhas de serializacao.
+- Configuracao padrao:
+  - `app.retry.serialization.max-attempts = 3`
+  - `app.retry.serialization.delay-ms = 120`
+
 
 ## Como testar no Swagger
 
