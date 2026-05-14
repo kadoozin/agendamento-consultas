@@ -1,8 +1,6 @@
-# Agendamento de Consultas - Guia Rapido (Dev)
+# Agendamento de Consultas - Guia Rapido
 
 Este guia foi feito para quem esta subindo o projeto pela primeira vez.
-
-## 1) Clone e primeira subida (faca isso primeiro)
 
 ### Pre-requisitos
 
