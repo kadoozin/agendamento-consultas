@@ -9,6 +9,7 @@ import com.example.agendamento_consultas.exception.ResourceNotFoundException;
 import com.example.agendamento_consultas.exception.ServiceUnavailableException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.ConcurrencyFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -57,6 +58,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleServiceUnavailable(ServiceUnavailableException ex) {
         log.error("Servico externo indisponivel", ex);
         return error(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage());
+    }
+
+    @ExceptionHandler(ConcurrencyFailureException.class)
+    public ResponseEntity<ApiErrorResponse> handleConcurrencyFailure(ConcurrencyFailureException ex) {
+        log.warn("Conflito de concorrencia no banco: {}", ex.getMessage());
+        return error(HttpStatus.CONFLICT, "Conflito de concorrencia. Tente novamente.");
     }
 
     @ExceptionHandler(AuthenticationException.class)

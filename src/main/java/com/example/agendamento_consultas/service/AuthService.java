@@ -21,6 +21,9 @@ import com.example.agendamento_consultas.security.TokenHashService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.ConcurrencyFailureException;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -61,6 +64,15 @@ public class AuthService {
         return new RegisterResponse(salvo.getId(), salvo.getEmail());
     }
 
+    @Retryable(
+            retryFor = ConcurrencyFailureException.class,
+            maxAttemptsExpression = "${app.retry.serialization.max-attempts:3}",
+            backoff = @Backoff(
+                    delayExpression = "${app.retry.serialization.delay-ms:120}",
+                    multiplier = 2.0,
+                    maxDelay = 1000
+            )
+    )
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public RegisterResponse bootstrapAdmin(RegisterRequest request, String bootstrapKey, HttpServletRequest servletRequest) {
         if (usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)) {
