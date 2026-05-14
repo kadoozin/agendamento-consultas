@@ -10,12 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class AgendamentoReminderScheduler {
+    private static final ZoneId SCHEDULER_ZONE = ZoneId.of("America/Sao_Paulo");
 
     private final AgendamentoRepository agendamentoRepository;
     private final AgendamentoNotificationService agendamentoNotificationService;
@@ -23,7 +25,7 @@ public class AgendamentoReminderScheduler {
     @Scheduled(cron = "${app.reminders.cron:0 0 8 * * *}", zone = "America/Sao_Paulo")
     @Transactional(readOnly = true)
     public void enviarLembretesDoDiaSeguinte() {
-        LocalDate dataConsulta = LocalDate.now().plusDays(1);
+        LocalDate dataConsulta = LocalDate.now(SCHEDULER_ZONE).plusDays(1);
         List<Agendamento> agendamentos = agendamentoRepository.findByDataAndStatus(
                 dataConsulta,
                 AgendamentoStatus.AGENDADO

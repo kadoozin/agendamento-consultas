@@ -1,6 +1,8 @@
 package com.example.agendamento_consultas.security;
 
+import com.example.agendamento_consultas.dto.response.ApiErrorResponse;
 import com.example.agendamento_consultas.database.repository.RevokedAccessTokenRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -27,6 +29,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final TokenHashService tokenHashService;
     private final RevokedAccessTokenRepository revokedAccessTokenRepository;
+    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(
@@ -47,7 +50,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String tokenHash = tokenHashService.hash(token);
 
             if (revokedAccessTokenRepository.existsByTokenHash(tokenHash)) {
-                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token revogado");
+                writeUnauthorized(response, "Token revogado");
                 return;
             }
 
@@ -72,10 +75,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | IllegalArgumentException | AuthenticationException ex) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token invalido");
+            writeUnauthorized(response, "Token invalido");
             return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void writeUnauthorized(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), new ApiErrorResponse(message));
     }
 }
