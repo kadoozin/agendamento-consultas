@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
@@ -34,7 +35,7 @@ public class AgendamentoService {
     private final AgendamentoUpdateMapper agendamentoUpdateMapper;
     private final AgendamentoNotificationService agendamentoNotificationService;
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse criar(AgendamentoCreateRequest request) {
         Paciente paciente = pacienteRepository.findByIdWithContatos(request.pacienteId())
                 .orElseThrow(() -> new ResourceNotFoundException("Paciente nao encontrado"));
@@ -72,7 +73,7 @@ public class AgendamentoService {
         return agendamentoMapper.toResponsePage(agendamentoRepository.findAll(pageable));
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse atualizar(Long id, AgendamentoUpdateRequest request) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));
@@ -111,7 +112,7 @@ public class AgendamentoService {
         return agendamentoMapper.toResponse(agendamentoSalvo);
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public AgendamentoResponse reagendar(Long id, ReagendamentoRequest request) {
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Agendamento nao encontrado"));

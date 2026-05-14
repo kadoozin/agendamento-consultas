@@ -28,8 +28,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.time.Instant;
 import java.util.Set;
@@ -60,7 +61,7 @@ public class AuthService {
         return new RegisterResponse(salvo.getId(), salvo.getEmail());
     }
 
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RegisterResponse bootstrapAdmin(RegisterRequest request, String bootstrapKey, HttpServletRequest servletRequest) {
         if (usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)) {
             audit("BOOTSTRAP_ADMIN", request.email(), false, servletRequest, "Administrador ja cadastrado");

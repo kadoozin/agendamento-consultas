@@ -1,6 +1,9 @@
 package com.example.agendamento_consultas.config;
 
+import com.example.agendamento_consultas.dto.response.ApiErrorResponse;
 import com.example.agendamento_consultas.security.JwtAuthenticationFilter;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +38,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,9 +52,9 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider())
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint((request, response, authException) ->
-                                response.sendError(401, "Não autenticado"))
+                                writeJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Nao autenticado"))
                         .accessDeniedHandler((request, response, accessDeniedException) ->
-                                response.sendError(403, "Acesso negado"))
+                                writeJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Acesso negado"))
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
@@ -80,5 +84,12 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    private void writeJsonError(HttpServletResponse response, int statusCode, String message) throws java.io.IOException {
+        response.setStatus(statusCode);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), new ApiErrorResponse(message));
     }
 }

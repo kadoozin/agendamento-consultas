@@ -75,7 +75,7 @@ Atencao: `down -v` apaga os dados locais do banco.
 O script carrega o `.env` automaticamente.
 Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configuration.
 
-## O que o projeto faz e como usar no Swagger, Postman ou no Bruno API Client
+# O que o projeto faz e como usar
 
 ### URL da documentacao
 
@@ -97,7 +97,7 @@ Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configura
 - Integracao Twilio (modo real ou simulado).
 - Controle de acesso por perfil (`ADMIN` e `MEDICO`).
 
-### Como testar rapido no Swagger
+## Como testar no Swagger
 
 1. Crie o primeiro admin em `POST /v1/auth/bootstrap-admin` usando header `X-Bootstrap-Key`.
 2. Faca login em `POST /v1/auth/login` e copie o `accessToken`.
@@ -108,7 +108,7 @@ Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configura
 - `/v1/agendamentos`
 - `/v1/enderecos/cep/{cep}`
 
-### Como usar no Postman
+## Como testar no Postman
 
 1. Crie um Environment (ex.: `agendamento-local`) com:
 - `baseUrl = http://localhost:8080`
@@ -129,7 +129,7 @@ Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configura
 - `{{baseUrl}}/v1/agendamentos`
 - `{{baseUrl}}/v1/enderecos/cep/01001000`
 
-### Como usar no Bruno API Client
+## Como testar no Bruno API Client
 
 1. Crie uma Collection (ex.: `agendamento-consultas`).
 2. Crie variaveis de ambiente:
