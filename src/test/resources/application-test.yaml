@@ -20,3 +20,7 @@ jwt:
 
 twilio:
   enabled: false
+
+app:
+  auth:
+    bootstrap-admin-enabled: true

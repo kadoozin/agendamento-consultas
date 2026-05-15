@@ -116,6 +116,7 @@ class AuthServiceTest {
         Usuario adminSalvo = new Usuario(2L, request.email(), "senhacriptografada", Set.of(Role.ROLE_ADMIN));
 
         mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminEnabled", true);
         ReflectionTestUtils.setField(authService, "bootstrapAdminKey", "bootstrap-secreto");
         when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(false);
         when(usuarioRepository.findByEmail(request.email())).thenReturn(Optional.empty());
@@ -138,6 +139,7 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
 
         mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminEnabled", true);
         when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(true);
 
         assertThrows(ResourceAlreadyExistsException.class, () ->
@@ -152,11 +154,26 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
 
         mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminEnabled", true);
         ReflectionTestUtils.setField(authService, "bootstrapAdminKey", "bootstrap-secreto");
         when(usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)).thenReturn(false);
 
         assertThrows(BusinessException.class, () ->
                 authService.bootstrapAdmin(request, "chave-errada", servletRequest));
+
+        verify(usuarioRepository, never()).save(any());
+        verify(authAuditLogRepository).save(any(AuthAuditLog.class));
+    }
+
+    @Test
+    void deveImpedirBootstrapQuandoRecursoEstiverDesabilitado() {
+        RegisterRequest request = new RegisterRequest("admin@clinica.com", "super123");
+
+        mockRequestMetadata();
+        ReflectionTestUtils.setField(authService, "bootstrapAdminEnabled", false);
+
+        assertThrows(BusinessException.class, () ->
+                authService.bootstrapAdmin(request, "qualquer-chave", servletRequest));
 
         verify(usuarioRepository, never()).save(any());
         verify(authAuditLogRepository).save(any(AuthAuditLog.class));

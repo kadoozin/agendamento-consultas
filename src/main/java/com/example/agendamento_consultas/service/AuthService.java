@@ -58,6 +58,9 @@ public class AuthService {
     @Value("${app.auth.bootstrap-admin-key:}")
     private String bootstrapAdminKey;
 
+    @Value("${app.auth.bootstrap-admin-enabled:false}")
+    private boolean bootstrapAdminEnabled;
+
     @Transactional
     public RegisterResponse register(RegisterRequest request, HttpServletRequest servletRequest) {
         Usuario salvo = createUser(request, Set.of(Role.ROLE_MEDICO), "REGISTER", servletRequest);
@@ -75,6 +78,11 @@ public class AuthService {
     )
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public RegisterResponse bootstrapAdmin(RegisterRequest request, String bootstrapKey, HttpServletRequest servletRequest) {
+        if (!bootstrapAdminEnabled) {
+            audit("BOOTSTRAP_ADMIN", request.email(), false, servletRequest, "Bootstrap admin desabilitado");
+            throw new BusinessException("Bootstrap admin desabilitado");
+        }
+
         if (usuarioRepository.existsByRolesContaining(Role.ROLE_ADMIN)) {
             audit("BOOTSTRAP_ADMIN", request.email(), false, servletRequest, "Administrador ja cadastrado");
             throw new ResourceAlreadyExistsException("Administrador ja cadastrado");

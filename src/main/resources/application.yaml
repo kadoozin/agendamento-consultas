@@ -32,6 +32,7 @@ twilio:
 
 app:
   auth:
+    bootstrap-admin-enabled: ${BOOTSTRAP_ADMIN_ENABLED:false}
     bootstrap-admin-key: ${BOOTSTRAP_ADMIN_KEY:}
   reminders:
     cron: ${REMINDERS_CRON:0 0 8 * * *}

@@ -1,14 +1,29 @@
-# Agendamento de Consultas - Guia Rapido (Dev)
+# Agendamento de Consultas
 
-Este guia foi feito para quem esta subindo o projeto pela primeira vez.
-
-## 1) Clone e primeira subida (faca isso primeiro)
+### Este guia foi feito para quem esta subindo o projeto pela primeira vez.
 
 ### Pre-requisitos
 
 - Java 21 instalado
 - Docker Desktop instalado e aberto
 - Projeto clonado
+
+### Variaveis de ambiente obrigatorias
+
+Defina no `.env` (ou no ambiente da plataforma de deploy):
+
+- `SPRING_DATASOURCE_URL`
+- `SPRING_DATASOURCE_USERNAME`
+- `SPRING_DATASOURCE_PASSWORD`
+- `JWT_SECRET` (minimo 32 bytes)
+- `BOOTSTRAP_ADMIN_ENABLED` (`true` somente para criar o primeiro admin)
+- `BOOTSTRAP_ADMIN_KEY` (obrigatoria quando `BOOTSTRAP_ADMIN_ENABLED=true`)
+
+Variaveis opcionais:
+
+- `JWT_REFRESH_EXPIRATION` (padrao: `604800000`)
+- `TWILIO_ENABLED`, `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM`, `TWILIO_CHANNEL`
+- `REMINDERS_CRON`
 
 ### Passo a passo
 
@@ -74,6 +89,28 @@ Atencao: `down -v` apaga os dados locais do banco.
 
 O script carrega o `.env` automaticamente.
 Na IDE, voce precisa configurar as mesmas variaveis de ambiente na Run Configuration.
+
+## Fluxo seguro para bootstrap do admin (ambiente final)
+
+1. Suba a aplicacao com `BOOTSTRAP_ADMIN_ENABLED=true` e `BOOTSTRAP_ADMIN_KEY` forte.
+2. Execute `POST /v1/auth/bootstrap-admin` uma unica vez para criar o primeiro admin.
+3. Em seguida, ajuste `BOOTSTRAP_ADMIN_ENABLED=false` e remova/rotacione a `BOOTSTRAP_ADMIN_KEY`.
+
+Com `BOOTSTRAP_ADMIN_ENABLED=false`, o endpoint de bootstrap fica bloqueado por regra de negocio.
+
+## Monitoramento minimo de autenticacao
+
+- Falhas e sucessos de auth sao auditados na tabela `tb_auth_audit_log`.
+- Eventos de erro de autenticacao tambem saem nos logs da API.
+
+Exemplo de consulta rapida no banco:
+
+```sql
+select action, email, success, reason, created_at
+from tb_auth_audit_log
+order by created_at desc
+limit 50;
+```
 
 # O que o projeto faz e como usar
 
