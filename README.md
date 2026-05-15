@@ -1,6 +1,6 @@
-# Agendamento de Consultas
+# Agendamento de Consultas - Guia Rapido
 
-### Este guia foi feito para quem esta subindo o projeto pela primeira vez.
+Este guia foi feito para quem esta subindo o projeto pela primeira vez.
 
 ### Pre-requisitos
 
